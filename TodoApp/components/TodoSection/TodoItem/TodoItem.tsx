@@ -15,6 +15,7 @@ interface TodoItemProps {
   onToggleLike: () => void; // ✅ 하트 토글 핸들러 추가
   inputRef?: (ref: TextInput | null) => void;
   autoFocus?: boolean;
+  onSave?: () => void;
 }
 
 const TodoItem: React.FC<TodoItemProps> = ({
@@ -23,6 +24,7 @@ const TodoItem: React.FC<TodoItemProps> = ({
   onToggleLike,
   inputRef,
   autoFocus,
+  onSave,
 }) => {
   const ref = useRef<TextInput>(null);
 
@@ -47,7 +49,12 @@ const TodoItem: React.FC<TodoItemProps> = ({
         placeholderTextColor="#999"
         style={styles.todoText}
         returnKeyType="done"
-        onSubmitEditing={() => Keyboard.dismiss()}
+        onSubmitEditing={() => {
+          Keyboard.dismiss();
+          if (onSave) {
+            onSave(); // ✅ 엔터 눌렀을 때 저장 호출
+          }
+        }}
         contextMenuHidden={true}
       />
       <TouchableOpacity onPress={onToggleLike}>

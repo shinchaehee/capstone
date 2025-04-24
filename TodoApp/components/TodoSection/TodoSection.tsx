@@ -9,7 +9,10 @@ import styles from './TodoSection.styles';
 import TodoItem from './TodoItem/TodoItem';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
+import { toggleLike, putTodosByDate } from '../../api/todoApi';
+
 interface Todo {
+  id: number;
   text: string;
   liked: boolean;
 }
@@ -39,12 +42,7 @@ const TodoSection: React.FC<TodoSectionProps> = ({
     setLocalTodos(todos);
   }, [todos]);
 
-  useLayoutEffect(() => {
-    const updated = [...localTodos, { text: '', liked: false }];
-    setLocalTodos(updated);
-    onTodosChange(updated);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addTrigger]);
+  useLayoutEffect(() => {}, [addTrigger]);
 
   const handleChangeText = (text: string, index: number) => {
     const updated = [...localTodos];
@@ -53,11 +51,32 @@ const TodoSection: React.FC<TodoSectionProps> = ({
     onTodosChange(updated);
   };
 
-  const handleToggleLike = (index: number) => {
+  const handleSave = async () => {
+    try {
+      await putTodosByDate(formattedDate, localTodos);
+      console.log('✅ 수정 내용 서버에 저장됨');
+    } catch (error) {
+      console.error('❌ 서버 저장 실패', error);
+    }
+  };
+
+  const handleToggleLike = async (index: number) => {
     const updated = [...localTodos];
     updated[index].liked = !updated[index].liked;
     setLocalTodos(updated);
     onTodosChange(updated);
+
+    try {
+      const todo = updated[index];
+      if (todo.id !== undefined) {
+        await toggleLike(todo.id); // ✅ 진짜 ID로 요청
+        console.log('[PATCH 성공] 하트 토글됨:', todo.id);
+      } else {
+        console.warn('Todo에 id가 없습니다. PATCH 요청 생략됨.');
+      }
+    } catch (error) {
+      console.error('하트 토글 실패:', error);
+    }
   };
 
   return (
@@ -88,6 +107,7 @@ const TodoSection: React.FC<TodoSectionProps> = ({
                 inputRefs.current[index] = ref;
               }
             }}
+            onSave={handleSave}
           />
         ))}
       </KeyboardAwareScrollView>
