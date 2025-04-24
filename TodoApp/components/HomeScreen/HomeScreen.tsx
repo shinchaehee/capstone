@@ -18,6 +18,7 @@ const HomeScreen: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [addTrigger, setAddTrigger] = useState(0);
   const [allTodos, setAllTodos] = useState<{ [date: string]: Todo[] }>({});
+  
   const formattedDate = `${selectedDate.getFullYear()}-${(selectedDate.getMonth() + 1)
     .toString().padStart(2, '0')}-${selectedDate.getDate().toString().padStart(2, '0')}`;
 

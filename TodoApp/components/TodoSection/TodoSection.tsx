@@ -107,7 +107,7 @@ const TodoSection: React.FC<TodoSectionProps> = ({
                 inputRefs.current[index] = ref;
               }
             }}
-            onSave={handleSave}
+
           />
         ))}
       </KeyboardAwareScrollView>
