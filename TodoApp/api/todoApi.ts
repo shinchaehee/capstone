@@ -63,3 +63,11 @@ export const putTodosByDate = async (date: string, todos: { text: string }[]) =>
     throw error;
   }
 };
+
+export const login = async (username: string, password: string) => {
+  const response = await axiosInstance.post('/login', {
+    username,
+    password,
+  });
+  return response.data;
+};
