@@ -4,15 +4,13 @@ import {
   Text,
   TextInput,
   Platform,
-} from 'react-native'; // ✅ Keyboard 제거
+} from 'react-native';
 import styles from './TodoSection.styles';
 import TodoItem from './TodoItem/TodoItem';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 
-import { toggleLike, putTodosByDate } from '../../api/todoApi';
-
 interface Todo {
-  id: number;
+  id?: number;
   text: string;
   liked: boolean;
 }
@@ -22,6 +20,7 @@ interface TodoSectionProps {
   todos: Todo[];
   onTodosChange: (todos: Todo[]) => void;
   addTrigger: number;
+  onToggleLike: (id: number) => void;
 }
 
 const TodoSection: React.FC<TodoSectionProps> = ({
@@ -29,6 +28,7 @@ const TodoSection: React.FC<TodoSectionProps> = ({
   todos,
   onTodosChange,
   addTrigger,
+  onToggleLike,
 }) => {
   const [localTodos, setLocalTodos] = useState<Todo[]>(todos);
   const inputRefs = useRef<TextInput[]>([]);
@@ -42,6 +42,7 @@ const TodoSection: React.FC<TodoSectionProps> = ({
     setLocalTodos(todos);
   }, [todos]);
 
+  // ✅ addTrigger 감지만 함 (경고 제거용)
   useLayoutEffect(() => {}, [addTrigger]);
 
   const handleChangeText = (text: string, index: number) => {
@@ -49,34 +50,6 @@ const TodoSection: React.FC<TodoSectionProps> = ({
     updated[index].text = text;
     setLocalTodos(updated);
     onTodosChange(updated);
-  };
-
-  const handleSave = async () => {
-    try {
-      await putTodosByDate(formattedDate, localTodos);
-      console.log('✅ 수정 내용 서버에 저장됨');
-    } catch (error) {
-      console.error('❌ 서버 저장 실패', error);
-    }
-  };
-
-  const handleToggleLike = async (index: number) => {
-    const updated = [...localTodos];
-    updated[index].liked = !updated[index].liked;
-    setLocalTodos(updated);
-    onTodosChange(updated);
-
-    try {
-      const todo = updated[index];
-      if (todo.id !== undefined) {
-        await toggleLike(todo.id); // ✅ 진짜 ID로 요청
-        console.log('[PATCH 성공] 하트 토글됨:', todo.id);
-      } else {
-        console.warn('Todo에 id가 없습니다. PATCH 요청 생략됨.');
-      }
-    } catch (error) {
-      console.error('하트 토글 실패:', error);
-    }
   };
 
   return (
@@ -98,16 +71,19 @@ const TodoSection: React.FC<TodoSectionProps> = ({
       >
         {localTodos.map((item, index) => (
           <TodoItem
-            key={index}
+            key={`todo-${item.id ?? index}`} // ✅ 문자열로 key 보정하여 경고 제거
             value={item}
             onChangeText={(text) => handleChangeText(text, index)}
-            onToggleLike={() => handleToggleLike(index)}
+            onToggleLike={() => {
+              if (item.id !== undefined) {
+                onToggleLike(item.id);
+              }
+            }}
             inputRef={(ref) => {
               if (ref) {
                 inputRefs.current[index] = ref;
               }
             }}
-            onSave={handleSave}
           />
         ))}
       </KeyboardAwareScrollView>

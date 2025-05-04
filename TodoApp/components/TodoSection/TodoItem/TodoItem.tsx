@@ -8,11 +8,11 @@ import {
 } from 'react-native';
 import styles from './TodoItem.styles';
 
-// ✅ value 타입 변경: text와 liked를 포함하는 객체로 변경
-interface TodoItemProps {
-  value: { text: string; liked: boolean }; // ✅ 수정됨
+// ✅ 여기에서 key 속성을 무시하라고 명시
+interface TodoItemProps extends Omit<React.ComponentPropsWithoutRef<'div'>, 'key'> {
+  value: { text: string; liked: boolean };
   onChangeText: (text: string) => void;
-  onToggleLike: () => void; // ✅ 하트 토글 핸들러 추가
+  onToggleLike: () => void;
   inputRef?: (ref: TextInput | null) => void;
   autoFocus?: boolean;
   onSave?: () => void;
@@ -43,7 +43,7 @@ const TodoItem: React.FC<TodoItemProps> = ({
             inputRef(r);
           }
         }}
-        value={value.text} // ✅ 수정됨
+        value={value.text}
         onChangeText={onChangeText}
         placeholder="할 일을 입력하세요"
         placeholderTextColor="#999"
@@ -52,7 +52,7 @@ const TodoItem: React.FC<TodoItemProps> = ({
         onSubmitEditing={() => {
           Keyboard.dismiss();
           if (onSave) {
-            onSave(); // ✅ 엔터 눌렀을 때 저장 호출
+            onSave();
           }
         }}
         contextMenuHidden={true}

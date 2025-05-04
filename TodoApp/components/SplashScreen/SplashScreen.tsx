@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import styles from './SplashScreen.styles';
-import { login } from '../../api/todoApi';
+import { login } from '../../api/authApi';
 import SignUpModal from './SignUpModal';
 
 const SplashScreen: React.FC = () => {
@@ -23,13 +23,11 @@ const SplashScreen: React.FC = () => {
   const handleLogin = async () => {
     try {
       const result = await login(username, password);
-
-      if (result.success) {
-        navigation.replace('Home');
-      } else {
-        throw new Error('로그인 실패');
-      }
-    } catch (error) {
+      console.log('[로그인 결과]', result);
+  
+      // 성공했으면 Home으로 이동
+      navigation.replace('Home');
+    } catch (error: any) {
       Alert.alert('로그인 실패', '아이디 또는 비밀번호가 일치하지 않습니다.');
       setUsername('');
       setPassword('');

@@ -10,8 +10,8 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import axios from 'axios';
 import styles from './SignUpModal.styles';
+import { signup } from '../../api/authApi'; // ✅ axios 대신 이걸 사용
 
 interface SignUpModalProps {
   visible: boolean;
@@ -23,34 +23,14 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ visible, onClose }) => {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
-  // ✅ 모달 열릴 때마다 입력값 초기화
   useEffect(() => {
-    if (visible) {
-      resetFields();
-    }
+    if (visible) resetFields();
   }, [visible]);
 
   const resetFields = () => {
     setUsername('');
     setPassword('');
     setConfirmPassword('');
-  };
-
-  const handleDuplicateCheck = async () => {
-    try {
-      await axios.post('http://localhost:8080/auth/signup', {
-        username,
-        password: 'dummy_password',
-      });
-      Alert.alert('사용 가능', '사용 가능한 아이디입니다.');
-    } catch (error: any) {
-      if (error.response?.status === 409) {
-        Alert.alert('중복된 아이디', '이미 사용 중인 아이디입니다.');
-        setUsername('');
-      } else {
-        Alert.alert('확인 실패', '중복 확인 중 문제가 발생했습니다.');
-      }
-    }
   };
 
   const handleSignUp = async () => {
@@ -65,20 +45,16 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ visible, onClose }) => {
     }
 
     try {
-      await axios.post('http://localhost:8080/auth/signup', {
-        username,
-        password,
-      });
+      await signup(username, password); // ✅ 수정됨
       Alert.alert('회원가입 성공', '이제 로그인해주세요.');
       onClose();
     } catch (error: any) {
-      if (error.response?.status === 409) {
+      if (error.response?.status === 409 || error.response?.status === 400) {
         Alert.alert('중복된 아이디', '이미 사용 중인 아이디입니다.');
-        setUsername('');
       } else {
-        Alert.alert('회원가입 실패', '다시 시도해주세요.');
-        resetFields();
+        Alert.alert('회원가입 실패', '서버에 문제가 있습니다.');
       }
+      resetFields();
     }
   };
 
@@ -97,20 +73,15 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ visible, onClose }) => {
           <View style={styles.modalContainer}>
             <Text style={styles.title}>회원가입</Text>
 
-            <View style={styles.row}>
-              <TextInput
-                style={[styles.input, styles.inputFlexGrow]}
-                placeholder="Username"
-                value={username}
-                onChangeText={setUsername}
-                textContentType="none"
-                autoComplete="off"
-                importantForAutofill="no"
-              />
-              <TouchableOpacity style={styles.duplicateButton} onPress={handleDuplicateCheck}>
-                <Text style={styles.duplicateText}>중복</Text>
-              </TouchableOpacity>
-            </View>
+            <TextInput
+              style={styles.input}
+              placeholder="Username"
+              value={username}
+              onChangeText={setUsername}
+              autoCapitalize="none"
+              textContentType="none"
+              autoComplete="off"
+            />
 
             <TextInput
               style={styles.input}
@@ -120,7 +91,6 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ visible, onClose }) => {
               onChangeText={setPassword}
               textContentType="none"
               autoComplete="off"
-              importantForAutofill="no"
             />
 
             <TextInput
@@ -131,7 +101,6 @@ const SignUpModal: React.FC<SignUpModalProps> = ({ visible, onClose }) => {
               onChangeText={setConfirmPassword}
               textContentType="none"
               autoComplete="off"
-              importantForAutofill="no"
             />
 
             <View style={styles.buttonRow}>
